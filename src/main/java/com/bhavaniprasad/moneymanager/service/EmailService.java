@@ -1,36 +1,57 @@
 package com.bhavaniprasad.moneymanager.service;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String apiKey;
 
-    @Value("${spring.mail.properties.mail.smtp.from}")
+    @Value("${brevo.sender.email}")
     private String fromEmail;
+
+    @Value("${brevo.sender.name}")
+    private String fromName;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public void sendEmail(String to, String subject, String htmlBody) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            String url = "https://api.brevo.com/v3/smtp/email";
 
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", apiKey);
 
-            mailSender.send(message);
+            String body = """
+                {
+                  "sender": { "name": "%s", "email": "%s" },
+                  "to": [{ "email": "%s" }],
+                  "subject": "%s",
+                  "htmlContent": "%s"
+                }
+                """.formatted(
+                    fromName,
+                    fromEmail,
+                    to,
+                    subject,
+                    htmlBody.replace("\"", "\\\"")
+            );
+
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+            restTemplate.postForEntity(url, entity, String.class);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            // Don't break user registration if email fails
+            System.err.println("Email sending failed: " + e.getMessage());
         }
     }
 }
