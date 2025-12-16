@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.bhavaniprasad</groupId>
-	<artifactId>moneymanager</artifactId>
+	<artifactId>moneymanager-v2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>moneymanager</name>
 	<description>project for the money manager</description>
