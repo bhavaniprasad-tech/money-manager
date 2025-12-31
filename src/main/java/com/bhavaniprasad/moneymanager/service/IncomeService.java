@@ -24,6 +24,8 @@ public class IncomeService {
     private final CategoryRepository categoryRepository;
     private final IncomeRepository incomeRepository;
     private final ProfileService profileService;
+    private final BrevoEmailService brevoEmailService;
+
 
     //adds new expense to the database
     public IncomeDTO addIncome(IncomeDTO dto) {
@@ -104,4 +106,25 @@ public class IncomeService {
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
+
+    public List<IncomeDTO> getAllIncomesForExport() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<IncomeEntity> list =
+                incomeRepository.findByProfileId(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
+
+    public void emailIncomeCSV(byte[] csvBytes) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+
+        brevoEmailService.sendEmailWithAttachment(
+                profile.getEmail(),
+                "Your Income Report",
+                "<p>Please find your <b>income report</b> attached.</p>",
+                csvBytes,
+                "income.csv"
+        );
+    }
+
+
 }

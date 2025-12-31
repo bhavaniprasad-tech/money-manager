@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +52,7 @@ public class ProfileService {
                 .fullName(profileDTO.getFullName())
                 .email(profileDTO.getEmail())
                 .password(passwordEncoder.encode(profileDTO.getPassword()))
+                .profileImageUrl(profileDTO.getProfileImageUrl())
                 .createdAt(profileDTO.getCreatedAt())
                 .updatedAt(profileDTO.getUpdatedAt())
                 .build();
@@ -61,6 +63,7 @@ public class ProfileService {
                 .id(profileEntity.getId())
                 .fullName(profileEntity.getFullName())
                 .email(profileEntity.getEmail())
+                .profileImageUrl(profileEntity.getProfileImageUrl())
                 .createdAt(profileEntity.getCreatedAt())
                 .updatedAt(profileEntity.getUpdatedAt())
                 .build();

@@ -7,6 +7,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.util.Base64;
+
 
 @Service
 public class BrevoEmailService {
@@ -65,4 +67,59 @@ public class BrevoEmailService {
             System.err.println("❌ Brevo email failed: " + e.getMessage());
         }
     }
+
+    public void sendEmailWithAttachment(
+            String to,
+            String subject,
+            String htmlBody,
+            byte[] attachmentBytes,
+            String fileName
+    ) {
+        try {
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", apiKey);
+
+            String base64File = Base64.getEncoder().encodeToString(attachmentBytes);
+
+            String body = """
+            {
+              "sender": {
+                "name": "%s",
+                "email": "%s"
+              },
+              "to": [
+                { "email": "%s" }
+              ],
+              "subject": "%s",
+              "htmlContent": "%s",
+              "attachment": [
+                {
+                  "content": "%s",
+                  "name": "%s"
+                }
+              ]
+            }
+            """.formatted(
+                    fromName,
+                    fromEmail,
+                    to,
+                    subject,
+                    htmlBody.replace("\"", "\\\""),
+                    base64File,
+                    fileName
+            );
+
+            HttpEntity<String> request = new HttpEntity<>(body, headers);
+            restTemplate.postForEntity(url, request, String.class);
+
+            System.out.println("✅ Brevo email with attachment sent");
+
+        } catch (Exception e) {
+            System.err.println("❌ Brevo email with attachment failed: " + e.getMessage());
+        }
+    }
+
 }

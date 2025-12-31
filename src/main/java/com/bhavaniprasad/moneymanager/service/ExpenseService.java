@@ -22,6 +22,8 @@ public class ExpenseService {
     private final CategoryRepository categoryRepository;
     private final ExpenseRepository expenseRepository;
     private final ProfileService profileService;
+    private final BrevoEmailService brevoEmailService;
+
 
     //adds new expense to the database
     public ExpenseDTO addExpense(ExpenseDTO dto) {
@@ -106,4 +108,25 @@ public class ExpenseService {
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
+
+    public List<ExpenseDTO> getAllExpensesForExport() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<ExpenseEntity> list =
+                expenseRepository.findByProfileId(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
+
+    public void emailExpenseCSV(byte[] csvBytes) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+
+        brevoEmailService.sendEmailWithAttachment(
+                profile.getEmail(),
+                "Your Expense Report",
+                "<p>Please find your <b>expense report</b> attached.</p>",
+                csvBytes,
+                "expenses.csv"
+        );
+    }
+
+
 }

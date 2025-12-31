@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.nio.charset.StandardCharsets;
+
 
 import java.util.List;
 
@@ -34,4 +38,40 @@ public class IncomeController {
         incomeService.deleteIncome(id);
         return ResponseEntity.noContent().build();
     }
+
+    private byte[] convertToCSV(List<IncomeDTO> incomes) {
+        StringBuilder sb = new StringBuilder("Name,Amount,Date,Category\n");
+
+        for (IncomeDTO i : incomes) {
+            sb.append(i.getName()).append(",")
+                    .append(i.getAmount()).append(",")
+                    .append(i.getDate()).append(",")
+                    .append(i.getCategoryName()).append("\n");
+        }
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    @GetMapping("/download")
+    public ResponseEntity<byte[]> downloadIncomeCSV() {
+        List<IncomeDTO> incomes = incomeService.getAllIncomesForExport();
+        byte[] csv = convertToCSV(incomes);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=incomes.csv")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(csv);
+    }
+
+    @PostMapping("/email")
+    public ResponseEntity<String> emailIncomeCSV() {
+        List<IncomeDTO> incomes = incomeService.getAllIncomesForExport();
+        byte[] csv = convertToCSV(incomes);
+
+        incomeService.emailIncomeCSV(csv);
+
+        return ResponseEntity.ok("Income report emailed successfully");
+    }
+
+
+
 }

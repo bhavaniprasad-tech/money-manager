@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +19,13 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @PostMapping("/register")
-    public ResponseEntity<ProfileDTO> registerProfile(@RequestBody ProfileDTO profileDTO) {
-        ProfileDTO registeredProfile = profileService.registerProfile(profileDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(registeredProfile);
+    public ResponseEntity<ProfileDTO> registerProfile(
+            @RequestBody ProfileDTO profileDTO
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(profileService.registerProfile(profileDTO));
     }
+
 
     @GetMapping("/activate")
     public ResponseEntity<String> activateProfile(@RequestParam String token) {
@@ -48,5 +52,11 @@ public class ProfileController {
                     "message", e.getMessage()
             ));
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ProfileDTO> getPublicProfile() {
+        ProfileDTO profileDTO = profileService.getPublicProfile(null);
+        return ResponseEntity.ok(profileDTO);
     }
 }
